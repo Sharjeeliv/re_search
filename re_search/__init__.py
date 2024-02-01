@@ -6,6 +6,7 @@ from re_search.params import PARAMS
 
 class DefaultConfig:
     UPLOAD_FOLDER = PARAMS['UPLOAD_FOLDER']
+    SECRET_KEY = PARAMS['SECRET_KEY']
 
 
 def create_app(config=None): 

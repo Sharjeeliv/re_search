@@ -1,16 +1,20 @@
 from pyzotero import zotero
-from ..src.text_processing import format_title_to_apa
-from ..src.params import general
+from .format import format_title_to_apa
+from ..params import PARAMS
 
-zot = zotero.Zotero(general['zotero_lib_id'], 'user', general['zotero_api_key'])
+zot = zotero.Zotero(PARAMS['zotero_lib_id'], 'user', PARAMS['zotero_api_key'])
 
 
 def create_zotero_entry(pdf_metadata):
     if pdf_metadata is None:
         print('Metadata is None')
         return
+    print(zot.count_items())
 
-    if zot.items(doi=pdf_metadata.get('doi')):
+    # The problem is that for some reason we check all items
+    # Lets try to fix this
+    if zot.item(doi=pdf_metadata.get('doi')):
+        print(zot.item(doi=pdf_metadata.get('doi')))
         print("Article already exists, skipping entry")
         return
 
@@ -40,5 +44,6 @@ def create_zotero_entry(pdf_metadata):
     try:
         zot.upload_attachments(
             zot.attachment_simple(file, response.get('successful').get('0').get('key')))
+        print('Uploaded file')
     except TypeError:
         print("Ignoring TypeError: Because the API uses a string for accessing a list")

@@ -3,10 +3,10 @@ import re
 import pytesseract
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
-from ..src.params import general
+from ..params import PARAMS
 
-pytesseract.pytesseract.tesseract_cmd = general['tesseract_path']
-regex = general["regex"]
+pytesseract.pytesseract.tesseract_cmd = PARAMS['tesseract_path']
+regex = PARAMS["regex"]
 clean = re.compile(r"(20\d\d|[.a-z])+$", re.IGNORECASE | re.MULTILINE)
 
 

@@ -39,7 +39,7 @@ def get_doi(text):
 
 
 def ocr_extract(pdf_name):
-    pdf_file = convert_from_path(pdf_name)
+    pdf_file = convert_from_path(pdf_name, first_page=0, last_page=1)
     # print(f"\033[1;35mOCR \033[1;34m{file_name}\033[0;0m")  # For logging print name
 
     page_data = pdf_file[0]

@@ -32,6 +32,7 @@ def filter_extractions(pdf_data):
 
 
 def api(files: list, lib_key: str, lib_id: str):
+    
 
     PARAMS['zotero_api_key'], PARAMS['zotero_lib_id'] = lib_key, lib_id
     print(PARAMS['zotero_api_key'], PARAMS['zotero_lib_id'])
@@ -43,6 +44,7 @@ def api(files: list, lib_key: str, lib_id: str):
     [create_zotero_entry(pdf_metadata) for pdf_metadata in pdfs_metadata]
     end = time.time()
     print(f"Time to complete: {round(end - start, 2)}s")
+    return 0
 
 
 def app():

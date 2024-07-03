@@ -1,3 +1,5 @@
+import os
+
 from pyzotero import zotero
 from .format import format_title_to_apa
 from ..params import PARAMS
@@ -12,11 +14,11 @@ def create_zotero_entry(pdf_metadata):
     print(zot.count_items())
 
     # The problem is that for some reason we check all items
-    # Lets try to fix this
-    if zot.item(doi=pdf_metadata.get('doi')):
-        print(zot.item(doi=pdf_metadata.get('doi')))
-        print("Article already exists, skipping entry")
-        return
+    # This is an api problem, can't be fixed
+    # if zot.item(doi=pdf_metadata.get('doi')):
+    #     print(zot.item(doi=pdf_metadata.get('doi')))
+    #     print("Article already exists, skipping entry")
+    #     return
 
     item_entry = zot.item_template('journalArticle')
     # Input metadate directly from received dictionary
@@ -44,6 +46,7 @@ def create_zotero_entry(pdf_metadata):
     try:
         zot.upload_attachments(
             zot.attachment_simple(file, response.get('successful').get('0').get('key')))
-        print('Uploaded file')
+        os.remove(file[0])
     except TypeError:
+        if os.exists(file[0]): os.remove(file[0])
         print("Ignoring TypeError: Because the API uses a string for accessing a list")

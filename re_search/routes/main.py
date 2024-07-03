@@ -2,9 +2,10 @@
 import os
 from concurrent.futures import ProcessPoolExecutor
 import time
+import re
 
 # Third-party Imports
-from flask import Blueprint, jsonify, render_template, current_app
+from flask import Blueprint, abort, jsonify, render_template, current_app
 from flask import Flask, render_template, flash, request, redirect, url_for, make_response
 from werkzeug.utils import secure_filename
 from rq.job import Job
@@ -90,6 +91,7 @@ def progress(job_id):
 def job_status(job_id):
     job = Job.fetch(job_id, connection=r)
     if job.is_finished:
+        # Assuming job.result contains the URL to the PDF
         return jsonify({'status': 'finished', 'result': job.result})
     elif job.is_queued:
         return jsonify({'status': 'queued'})
@@ -101,6 +103,26 @@ def job_status(job_id):
     else:
         return jsonify({'status': 'unknown'})
     
+from flask import send_file
+
+DOWNLOAD_DIRECTORY = os.path.abspath('pdfs')
+@main.route('/download/<filename>', methods=['GET'])
+def download(filename):
+    safe_filename = re.sub(r'[^a-zA-Z0-9_\-.]', '', filename)
+    file_path = os.path.join(DOWNLOAD_DIRECTORY, filename)
+    
+    # Check if the file exists
+    loc = file_path.startswith(DOWNLOAD_DIRECTORY)
+    if not os.path.isfile(file_path) and not loc:
+        abort(404)  # File not found
+    
+    try:
+        # Send the file for download
+        return send_file(file_path, as_attachment=True)
+    except Exception as e:
+        # Handle unexpected errors
+        return str(e), 500
+
 @main.route('/cancel-job/<job_id>', methods=['POST'])
 def cancel_job(job_id):
     job = Job.fetch(job_id, connection=r)

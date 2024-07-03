@@ -77,10 +77,14 @@ def landing_input():
     # API Call Section
     if files:
         job = q.enqueue(api_task, files)
-        return redirect(url_for('routes/main.landing', pending_jobs=len(files), job_id=job.get_id()))
+        return redirect(url_for('routes/main.progress', job_id=job.get_id()))
+        # return redirect(url_for('routes/main.landing', pending_jobs=len(files), job_id=job.get_id()))
 
     return redirect(url_for('routes/main.landing'))
 
+@main.route('/progress/<job_id>')
+def progress(job_id):
+    return render_template('progress.html', job_id=job_id)
 
 @main.route('/job-status/<job_id>', methods=['GET'])
 def job_status(job_id):
@@ -96,6 +100,12 @@ def job_status(job_id):
         return jsonify({'status': 'failed'})
     else:
         return jsonify({'status': 'unknown'})
+    
+@main.route('/cancel-job/<job_id>', methods=['POST'])
+def cancel_job(job_id):
+    job = Job.fetch(job_id, connection=r)
+    job.cancel()
+    return jsonify({'status': 'canceled'})
 
 # *********************
 # HELPER FUNCTIONS

@@ -5,10 +5,12 @@ import time
 import re
 
 # Third-party Imports
+from exceptiongroup import catch
 from flask import Blueprint, abort, jsonify, render_template, current_app
 from flask import Flask, render_template, flash, request, redirect, url_for, make_response
 from werkzeug.utils import secure_filename
 from rq.job import Job
+from rq.exceptions import NoSuchJobError
 
 
 # Local Imports
@@ -83,13 +85,18 @@ def landing_input():
 
     return redirect(url_for('routes/main.landing'))
 
+
+# PROGRESS ROUTES
 @main.route('/progress/<job_id>')
 def progress(job_id):
     return render_template('progress.html', job_id=job_id)
 
 @main.route('/job-status/<job_id>', methods=['GET'])
 def job_status(job_id):
-    job = Job.fetch(job_id, connection=r)
+
+    try: job = Job.fetch(job_id, connection=r)
+    except NoSuchJobError: return jsonify({'status': 'unknown'})
+     
     if job.is_finished:
         # Assuming job.result contains the URL to the PDF
         return jsonify({'status': 'finished', 'result': job.result})

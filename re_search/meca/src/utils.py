@@ -1,33 +1,25 @@
 import os
-import shutil
+import time
 
-# This section needs to be cleaned up
-def search_pdfs(path: str) -> [str]:  # Takes path input and returns a list of names
-    folders, pdf_files = [], []
-    folders.append(path)
-
-    for folder in folders:
-        for file in os.listdir(folder):  # Returns all items in a path
-            if file.endswith('.pdf'):
-                pdf_files.append("/" + folder + "/" + file)
-            elif os.path.isdir(folder + "/" + file):
-                folders.append(folder + "/" + file + "/")
-                print(f"{file} is a folder")
+# *********************
+# HELPER FUNCTIONS
+# *********************
+def get_pdfs(path: str) -> list:
+    """Return a list of PDF file paths found in the given directory and its subdirectories."""
+    pdf_files = []
+    for root, _, files in os.walk(path):
+        for file in files:
+            if not file.endswith('.pdf'): continue
+            pdf_files.append(os.path.join(root, file))
     return pdf_files
 
-
-def move_pdf(pdf_path: str):
-    try:
-        dest = os.getcwd() + "/manual"
-        pdf_name = pdf_path.rsplit('/', 1)[1]
-        if os.path.exists(dest):  # Move to Manual search folder
-            shutil.copy2(pdf_path, dest + '/' + pdf_name)
-        else:  # Create Manual search folder
-            os.mkdir(dest)
-            shutil.copy2(pdf_path, dest + '/' + pdf_name)
-    except FileNotFoundError:
-        print("File to move was not found")
-
-
-if __name__ == '__main__':
-    search_pdfs('/Users/sharjeelmustafa/Documents/03 Projects/Development/zotero_tool/pdfs')
+def time_execution(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        execution_time = time.time() - start_time
+        m, s = divmod(execution_time, 60)
+        ms = (execution_time - int(execution_time)) * 1000
+        print(f"\033[91;1mEXECUTION TIME: {int(m):02}:{int(s):02}.{int(ms):03}\033[0m")
+        return result
+    return wrapper

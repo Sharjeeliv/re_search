@@ -1,49 +1,51 @@
-import os
+# First Party Imports
 import re
+from tkinter import N
+
+# Third Party Imports
 import pytesseract
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
-from ..params import PARAMS
-
-pytesseract.pytesseract.tesseract_cmd = PARAMS['tesseract_path']
-regex = PARAMS["regex"]
-clean = re.compile(r"(20\d\d|[.a-z])+$", re.IGNORECASE | re.MULTILINE)
+from concurrent.futures import ThreadPoolExecutor
 
 
-def text_extract(pdf_name):
-    _, file_name = os.path.split(pdf_name)
-    # print(f"\033[1;36mTXT \033[1;34m{file_name}\033[0;0m")  # For logging print name
-    # with open(pdf_name, "rb") as file:
+pytesseract.pytesseract.tesseract_cmd = "/Users/sharjeelmustafa/opt/anaconda3/envs/re_search/bin/tesseract"
+DOI_REGEX = re.compile(r"(10.\d{4,9}\/[-._;()\/:A-Z0-9]+|\/^10.1002\/[^\s]+$\/i)", re.IGNORECASE | re.MULTILINE)
+CLEAN_REGEX = re.compile(r"(20\d\d|[.a-z])+$", re.IGNORECASE | re.MULTILINE)
+
+# *********************
+# DOI FUNCTIONS
+# *********************
+def get_dois(files: str):
+    with ThreadPoolExecutor() as executor:
+        results = executor.map(extract_doi, files)
+        return results
+
+def extract_doi(file: str) -> str | None:
+    """Extract a DOI from a PDF file using text extraction and OCR."""
+    doi = text_extract(file) or ocr_extract(file)
+    return doi, file
+
+def get_doi(text: str) -> str:
+    """Extract a DOI using a regex."""
+    doi = re.search(DOI_REGEX, text)
+    if doi is None: return None
+    doi = re.sub(CLEAN_REGEX, '', doi.group(0))
+    if doi[-1] in ['.', ',', '-']: return None
+    return doi
+
+def text_extract(file: str) -> str | None:
+    """Extract text from the first page of a PDF and search for a DOI."""
     try:
-        reader = PdfReader(pdf_name, strict=False)
-        first_page = reader.pages[0]
-        text = first_page.extract_text()
-    except Exception:
-        text = ""
-    return get_doi(str(text))
+        reader = PdfReader(file)
+        text = reader.pages[0].extract_text()
+        return get_doi(text)
+    except Exception: return None
 
-
-def clean_doi(doi):
-    # print(re.search(clean, doi))
-    return re.sub(clean, '', doi)
-
-
-def get_doi(text):
-    matches = re.search(regex, text, re.IGNORECASE | re.MULTILINE)
-    if matches is None:
-        # print(f"\033[1;31mNo regex match, text dump:\033[0;0m\n")
-        return None
-    doi = clean_doi(matches.group(0))
-    # print(f"\033[1;32mRegex matches, DOI found:\033[0;0m {doi}\n")
-    return doi
-
-
-def ocr_extract(pdf_name):
-    pdf_file = convert_from_path(pdf_name, first_page=0, last_page=1)
-    # print(f"\033[1;35mOCR \033[1;34m{file_name}\033[0;0m")  # For logging print name
-
-    page_data = pdf_file[0]
-    text = pytesseract.image_to_string(page_data)
-    text = re.sub("\n-", "", text)
-    doi = get_doi(text)
-    return doi
+def ocr_extract(file: str) -> str | None:
+    """Extract text from the first page of a PDF using OCR and search for a DOI."""
+    try:
+        image = convert_from_path(file, first_page=1, last_page=1)[0]
+        text = pytesseract.image_to_string(image)
+        return get_doi(text)
+    except Exception: return None

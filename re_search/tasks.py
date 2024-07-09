@@ -1,9 +1,13 @@
+# First Party
 import time
 import os
+
+# Third Party
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from rq import get_current_job
 
+# Local
 from meca import api
 
 

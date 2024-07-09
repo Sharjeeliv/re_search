@@ -1,6 +1,7 @@
 import spacy
 import subprocess
 
+
 def download_spacy_model(model_name: str):
     try: spacy.load(model_name)
     except OSError:
@@ -22,7 +23,6 @@ def format_title_to_apa(title: str)->str:
     
     title = []
     for token in doc:
-        
         # Operate on compound words
         if title and token.pos_ == 'PART': 
             title[-1] = title[-1] + token.text 
@@ -41,5 +41,11 @@ def format_title_to_apa(title: str)->str:
     return formatted_title
 
 if __name__ == '__main__':
-    test_string = "Perspective: Teams Won’t Solve This Problem"
-    print(format_title_to_apa(test_string))
+    test_strings = [
+        "Perspective: Teams Won't Solve This Problem",
+        "the role of teams in organizations",
+        "A Conceptual Review of Emergent State Measurement: Current Problems, Future Solutions",
+        "A CONCEPTUAL REVIEW OF EMERGENT STATE MEASUREMENT: CURRENT PROBLEMS, FUTURE SOLUTIONS",
+        "Teams in Organizations: From Input-Process-Output Models to IMOI Models"]
+    for test_string in test_strings:
+        print(format_title_to_apa(test_string))

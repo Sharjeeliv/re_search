@@ -1,13 +1,12 @@
 import os
 
 from pyzotero import zotero
-from .format import format_title_to_apa
+from .format import format_to_apa
 from ..params import PARAMS
 
-zot = zotero.Zotero(PARAMS['zotero_lib_id'], 'user', PARAMS['zotero_api_key'])
+# zot = zotero.Zotero(PARAMS['zotero_lib_id'], 'user', PARAMS['zotero_api_key'])
 
-
-def create_zotero_entry(pdf_metadata):
+def create_zotero_entry(pdf_metadata, zot):
     if pdf_metadata is None: return
     
     # Check if the article already exists in the database
@@ -15,7 +14,7 @@ def create_zotero_entry(pdf_metadata):
 
     item_entry = zot.item_template('journalArticle')
     # Input metadate directly from received dictionary
-    item_entry['title'] = pdf_metadata.get('title') #format_title_to_apa()
+    item_entry['title'] = format_to_apa(pdf_metadata.get('title'))
     item_entry['publicationTitle'] = pdf_metadata.get('publication')
     item_entry['issue'] = pdf_metadata.get('issue')
     item_entry['volume'] = pdf_metadata.get('volume')

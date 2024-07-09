@@ -1,6 +1,5 @@
 # First Party Imports
 import re
-from tkinter import N
 
 # Third Party Imports
 import pytesseract

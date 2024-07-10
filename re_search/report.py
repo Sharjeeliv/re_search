@@ -5,7 +5,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.colors import red
 from reportlab.lib.units import inch
 
-def generate_pdf(filenames, output_path):
+def generate_report(filenames, output_path):
     # Document setup
     doc = SimpleDocTemplate(output_path, pagesize=letter,
                             rightMargin=inch, leftMargin=inch,
@@ -79,7 +79,7 @@ def task():
     out_dir, out_name = 'reports', 'failures.pdf'
     os.makedirs(out_dir, exist_ok=True)
     report_path = os.path.join(out_dir, out_name)
-    generate_pdf(results, report_path)
+    generate_report(results, report_path)
 
     # Return the path to the failure report
     return out_name

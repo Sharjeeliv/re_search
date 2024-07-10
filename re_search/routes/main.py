@@ -79,7 +79,7 @@ def landing_input():
 
     # API Call Section
     if files:
-        job = q.enqueue(api_task, files)
+        job = q.enqueue(api_task, files, LIB_KEY, LIB_ID)
         return redirect(url_for('routes/main.progress', job_id=job.get_id()))
         # return redirect(url_for('routes/main.landing', pending_jobs=len(files), job_id=job.get_id()))
 

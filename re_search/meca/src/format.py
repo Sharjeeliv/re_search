@@ -32,7 +32,6 @@ def is_major_word(token, tag):
     # And words that are at least 4 characters long
     return tag in POS_TAGS or len(token) >= 4
     
-
 def format_to_apa(title: str)->str:
     doc = nlp(title.lower())
     tokens = [(token.text, token.pos_) for token in doc]
@@ -65,7 +64,6 @@ def format_to_apa(title: str)->str:
 # *********************
 def test_format_to_apa(strings: list):
     for string in strings: print(format_to_apa(string))
-
 
 if __name__ == '__main__':
     test_strings = [

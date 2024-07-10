@@ -1,5 +1,6 @@
 # First Party Imports
-import time
+import os
+from typing import List, Tuple
 
 # Third Party Imports
 from pyzotero import zotero
@@ -15,42 +16,42 @@ from .params import PARAMS
 # *********************  
 # HELPER FUNCTIONS
 # *********************
-def filter_none(pdf_data): 
-     # Remove all none values from the list
+def filter_none(pdf_data: List[str]): 
+    """Remove all none values from the list"""
     return pdf_data[0] is not None
 
 # *********************  
 # ENTRY FUNCTIONS
 # *********************
-def api(files: list, lib_key: str, lib_id: str):
+def api(files: list, lib_key: str, lib_id: str) -> Tuple[List[str], List[Tuple[str, str]]]:
     # Set the zotero api key and library id
-    PARAMS['zotero_api_key'], PARAMS['zotero_lib_id'] = lib_key, lib_id
-    zot = zotero.Zotero(PARAMS['zotero_lib_id'], 'user', PARAMS['zotero_api_key'])
+    zot = zotero.Zotero(lib_id, 'user', lib_key)
     
-    pdfs_data = filter(lambda result: filter_none(result), get_dois(files))
-    pdfs_metadata = [get_crossref_work(pdf_data) for pdf_data in pdfs_data]
-    [create_zotero_entry(pdf_metadata, zot) for pdf_metadata in pdfs_metadata]
-    return 0
+    file_data = filter(lambda result: filter_none(result), get_dois(files))
+    metadata = [get_crossref_work(data) for data in file_data]
+    results = [create_zotero_entry(pdf_metadata, zot) for pdf_metadata in metadata]
+    
+    if results is None: return None, None
+    sucess = [result for result, _ in results]
+    fails = list(set(files)-set(sucess))
+    return fails, results
 
 
 @time_execution
-def app(path: str):
+def app(path: str) -> Tuple[List[str], List[Tuple[str, str]]]:
     zot = zotero.Zotero(PARAMS['zotero_lib_id'], 'user', PARAMS['zotero_api_key'])
-    start = time.time()
-    pdfs = get_pdfs(path)
-    print(f"get_pdfs: {round(time.time() - start, 2)}")
+    
+    file_paths = get_pdfs(path)
+    file_data = filter(lambda result: filter_none(result), get_dois(file_paths))
+    metadata = [get_crossref_work(data) for data in file_data]
+    results = [create_zotero_entry(pdf_metadata, zot) for pdf_metadata in metadata]
+    
+    files = [os.path.split(file)[1] for file in file_paths]
+    if results[0] is None: return files, []
 
-    start = time.time()
-    pdfs_data = filter(lambda result: filter_none(result), get_dois(pdfs))
-    print(f"get_dois: {round(time.time() - start, 2)}")
-
-    start = time.time()
-    pdfs_metadata = [get_crossref_work(pdf_data) for pdf_data in pdfs_data]
-    print(f"get_crossref_work: {round(time.time() - start, 2)}")
-
-    start = time.time()
-    [create_zotero_entry(pdf_metadata, zot) for pdf_metadata in pdfs_metadata]
-    print(f"format & upload: {round(time.time() - start, 2)}")
+    sucess = [result for result, _ in results]
+    fails = list(set(files)-set(sucess))
+    return fails, results
 
 
 # *********************  
@@ -58,4 +59,7 @@ def app(path: str):
 # *********************
 if __name__ == '__main__':
     test_path = "/Users/sharjeelmustafa/Documents/02_Work/01_Research/SEM_4_Kyle/Articles/00 - TEAMS/0 - 0 Team (Multilevel) Foundation _ Reviews"
-    app(test_path)
+    f, r = app(test_path)
+
+    for fail in f: print(fail)
+    for result, doi in r: print(result, doi)
